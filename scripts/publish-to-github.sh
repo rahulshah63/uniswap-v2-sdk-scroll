@@ -1,5 +1,5 @@
 #!/bin/bash
-jq '.name = "@dimensiondev/uniswap-v2-sdk"' package.json > package-modified.json
+jq '.name = "@dimensiondev/uniswap-sdk"' package.json > package-modified.json
 mv package-modified.json package.json
 
 VERSION=$(jq -r '.version' package.json)

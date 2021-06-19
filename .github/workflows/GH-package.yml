@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Publish to Github Package
 
 on:
     push:
@@ -17,8 +17,10 @@ jobs:
               with:
                   registry: true
             - name: Install
-              run: npx pnpm install --frozen-lockfile
-            # - name: Test
-            #   run: npm run test:ci
+              run: npm install --frozen-lockfile
+            - name: Test
+              run: npm run test
+            - name: Build
+              run: npm run build
             - name: Publish to GitHub Package (unstable)
               run: ./scripts/publish-to-github.sh
