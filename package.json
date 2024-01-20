@@ -1,7 +1,7 @@
 {
   "name": "@rahulshah63/uniswap-v2-sdk-scroll",
   "license": "MIT",
-  "version": "1.0.0---",
+  "version": "1.0.0",
   "description": "🛠 An SDK for building applications on top of Uniswap (support for Scroll).",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
