@@ -1,17 +1,18 @@
 {
-  "name": "@dimensiondev/uniswap-sdk",
+  "name": "@rahulshah63/uniswap-v2-sdk-scroll",
   "license": "MIT",
-  "version": "3.0.4",
-  "description": "🛠 An SDK for building applications on top of Uniswap.",
+  "version": "1.0.0---",
+  "description": "🛠 An SDK for building applications on top of Uniswap (support for Scroll).",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
     "dist"
   ],
-  "repository": "https://github.com/DimensionDev/uniswap-v2-sdk.git",
+  "repository": "https://github.com/rahulshah63/uniswap-v2-sdk-scroll.git",
   "keywords": [
     "uniswap",
-    "ethereum"
+    "ethereum",
+    "scroll"
   ],
   "module": "dist/sdk.esm.js",
   "scripts": {

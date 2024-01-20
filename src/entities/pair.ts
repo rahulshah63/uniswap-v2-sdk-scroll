@@ -18,7 +18,7 @@ import {
 } from '../constants'
 import { sqrt, parseBigintIsh } from '../utils'
 import { InsufficientReservesError, InsufficientInputAmountError } from '../errors'
-import { Token } from './token'
+import { TOKENS, Token } from './token'
 
 let PAIR_ADDRESS_CACHE: { [token0Address: string]: { [token1Address: string]: string } } = {}
 
@@ -28,7 +28,8 @@ export class Pair {
 
   public static getAddress(tokenA: Token, tokenB: Token): string {
     const tokens = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
-
+    const pairAddress = getPairAddress(tokens)
+    if(pairAddress) return pairAddress
     if (PAIR_ADDRESS_CACHE?.[tokens[0].address]?.[tokens[1].address] === undefined) {
       PAIR_ADDRESS_CACHE = {
         ...PAIR_ADDRESS_CACHE,
@@ -46,16 +47,18 @@ export class Pair {
     return PAIR_ADDRESS_CACHE[tokens[0].address][tokens[1].address]
   }
 
-  public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount) {
+  public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount, pairAddress?: string) {
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
       ? [tokenAmountA, tokenAmountB]
       : [tokenAmountB, tokenAmountA]
     this.liquidityToken = new Token(
       tokenAmounts[0].token.chainId,
-      Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
+      pairAddress || Pair.getAddress(tokenAmounts[0].token, tokenAmounts[1].token),
       18,
-      'UNI-V2',
-      'Uniswap V2'
+      'SLP-V2',
+      'SpaceSwap V2'      
+      // 'UNI-V2',
+      // 'Uniswap V2'
     )
     this.tokenAmounts = tokenAmounts as [TokenAmount, TokenAmount]
   }
@@ -198,4 +201,24 @@ export class Pair {
       JSBI.divide(JSBI.multiply(liquidity.raw, this.reserveOf(token).raw), totalSupplyAdjusted.raw)
     )
   }
+}
+
+
+const getPairAddress = (tokens: Token[]): string | undefined => {
+  const chainId = tokens[0].chainId || tokens[1].chainId
+  const Addresses = Object.values(TOKENS[chainId as keyof typeof TOKENS].Tokens.ADDRESSES)
+  const Names = Object.keys(TOKENS[chainId as keyof typeof TOKENS].Tokens.ADDRESSES)
+  console.log(Addresses.includes(tokens[0].address), Addresses.includes(tokens[1].address))
+
+  if(Addresses.includes(tokens[0].address) && Addresses.includes(tokens[1].address)){
+    const index0 = Addresses.findIndex((address) => address === tokens[0].address)
+    const index1 = Addresses.findIndex((address) => address === tokens[1].address)
+    const name0 = Names[index0]
+    const name1 = Names[index1]
+    const tokenList = TOKENS[chainId as keyof typeof TOKENS]
+    const pairName_1 = `${name0}_${name1}` as keyof typeof tokenList.Tokens.Pair
+    const pairName_2 = `${name1}_${name0}` as keyof typeof tokenList.Tokens.Pair
+    return tokenList.Tokens.Pair[pairName_1] || tokenList.Tokens.Pair[pairName_2]
+  }
+  return
 }
