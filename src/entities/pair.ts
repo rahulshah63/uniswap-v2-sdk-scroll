@@ -6,7 +6,7 @@ import { getCreate2Address } from '@ethersproject/address'
 
 import {
   BigintIsh,
-  FACTORY_ADDRESS,
+  FACTORY_ADDRESSES,
   INIT_CODE_HASH,
   MINIMUM_LIQUIDITY,
   ZERO,
@@ -28,7 +28,8 @@ export class Pair {
 
   public static getAddress(tokenA: Token, tokenB: Token): string {
     const tokens = tokenA.sortsBefore(tokenB) ? [tokenA, tokenB] : [tokenB, tokenA] // does safety checks
-    const pairAddress = getPairAddress(tokens)
+    const chainId = tokens[0].chainId || tokens[1].chainId
+    const pairAddress = Pair.getPairAddress(chainId, tokens)
     if(pairAddress) return pairAddress
     if (PAIR_ADDRESS_CACHE?.[tokens[0].address]?.[tokens[1].address] === undefined) {
       PAIR_ADDRESS_CACHE = {
@@ -36,7 +37,7 @@ export class Pair {
         [tokens[0].address]: {
           ...PAIR_ADDRESS_CACHE?.[tokens[0].address],
           [tokens[1].address]: getCreate2Address(
-            FACTORY_ADDRESS,
+            FACTORY_ADDRESSES[chainId as keyof typeof FACTORY_ADDRESSES],
             keccak256(['bytes'], [pack(['address', 'address'], [tokens[0].address, tokens[1].address])]),
             INIT_CODE_HASH
           )
@@ -46,6 +47,24 @@ export class Pair {
 
     return PAIR_ADDRESS_CACHE[tokens[0].address][tokens[1].address]
   }
+
+
+public static getPairAddress = (chainId: ChainId, tokens: Token[]): string | undefined => {
+  const Addresses = Object.values(TOKENS[chainId as keyof typeof TOKENS].Tokens.ADDRESSES)
+  const Names = Object.keys(TOKENS[chainId as keyof typeof TOKENS].Tokens.ADDRESSES)
+
+  if(Addresses.includes(tokens[0].address) && Addresses.includes(tokens[1].address)){
+    const index0 = Addresses.findIndex((address) => address === tokens[0].address)
+    const index1 = Addresses.findIndex((address) => address === tokens[1].address)
+    const name0 = Names[index0]
+    const name1 = Names[index1]
+    const tokenList = TOKENS[chainId as keyof typeof TOKENS]
+    const pairName_1 = `${name0}_${name1}` as keyof typeof tokenList.Tokens.Pair
+    const pairName_2 = `${name1}_${name0}` as keyof typeof tokenList.Tokens.Pair
+    return tokenList.Tokens.Pair[pairName_1] || tokenList.Tokens.Pair[pairName_2]
+  }
+  return
+}
 
   public constructor(tokenAmountA: TokenAmount, tokenAmountB: TokenAmount, pairAddress?: string) {
     const tokenAmounts = tokenAmountA.token.sortsBefore(tokenAmountB.token) // does safety checks
@@ -203,22 +222,3 @@ export class Pair {
   }
 }
 
-
-const getPairAddress = (tokens: Token[]): string | undefined => {
-  const chainId = tokens[0].chainId || tokens[1].chainId
-  const Addresses = Object.values(TOKENS[chainId as keyof typeof TOKENS].Tokens.ADDRESSES)
-  const Names = Object.keys(TOKENS[chainId as keyof typeof TOKENS].Tokens.ADDRESSES)
-  console.log(Addresses.includes(tokens[0].address), Addresses.includes(tokens[1].address))
-
-  if(Addresses.includes(tokens[0].address) && Addresses.includes(tokens[1].address)){
-    const index0 = Addresses.findIndex((address) => address === tokens[0].address)
-    const index1 = Addresses.findIndex((address) => address === tokens[1].address)
-    const name0 = Names[index0]
-    const name1 = Names[index1]
-    const tokenList = TOKENS[chainId as keyof typeof TOKENS]
-    const pairName_1 = `${name0}_${name1}` as keyof typeof tokenList.Tokens.Pair
-    const pairName_2 = `${name1}_${name0}` as keyof typeof tokenList.Tokens.Pair
-    return tokenList.Tokens.Pair[pairName_1] || tokenList.Tokens.Pair[pairName_2]
-  }
-  return
-}
